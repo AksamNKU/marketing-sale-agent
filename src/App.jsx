@@ -1385,3 +1385,76 @@ export default function App() {
     </div>
   );
 }
+/* ═══════════════════════════════════════════════════════════════════════
+   MAIN APP WRAPPER
+═══════════════════════════════════════════════════════════════════════ */
+const NAV_ITEMS = [
+  { k: "dash", lb: "Dashboard", ic: LayoutDashboard },
+  { k: "disco", lb: "Discovery", ic: Search },
+  { k: "pipe", lb: "Pipeline", ic: BarChart2 },
+];
+
+export default function App() {
+  const [screen, setScreen] = useState("dash");
+  const [leads, setLeads] = useState(LEADS_INIT);
+  const [drawer, setDrawer] = useState(null);
+  const [agentOn, setAgentOn] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    const tm = setTimeout(() => setShowModal(true), 4000);
+    return () => clearTimeout(tm);
+  }, []);
+
+  const renderScreen = () => {
+    if (screen === "dash") return <Dashboard />;
+    if (screen === "disco") return <Discovery onOpenDrawer={setDrawer} />;
+    if (screen === "pipe") return <Pipeline leads={leads} setLeads={setLeads} onOpenDrawer={setDrawer} />;
+    return <Dashboard />;
+  };
+
+  return (
+    <div style={{ display: "flex", height: "100vh", background: T.bg, color: T.txt, fontFamily: "'IBM Plex Sans',sans-serif", overflow: "hidden" }}>
+      {/* SIDEBAR */}
+      <div style={{ width: 68, background: T.bg2, borderRight: `1px solid ${T.border}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
+        <div style={{ width: 32, height: 32, background: `linear-gradient(135deg,${T.accent},${T.teal})`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 30, fontWeight: 800, fontSize: 14 }}>E</div>
+        {NAV_ITEMS.map(n => (
+          <button key={n.k} onClick={() => setScreen(n.k)} style={{ background: "none", border: "none", cursor: "pointer", padding: 12, color: screen === n.k ? T.teal : T.txt3, transition: "color .2s", marginBottom: 10 }}>
+            <n.ic size={20} strokeWidth={screen === n.k ? 2.5 : 2} />
+          </button>
+        ))}
+        <div style={{ marginTop: "auto" }}>
+          <button onClick={() => setAgentOn(!agentOn)} style={{ background: "none", border: "none", cursor: "pointer", color: agentOn ? T.green : T.txt3, marginBottom: 20 }}>
+            {agentOn ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
+          </button>
+          <Settings size={20} color={T.txt3} style={{ cursor: "pointer" }} />
+        </div>
+      </div>
+
+      {/* MAIN */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ height: 50, borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px" }}>
+          <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 14, fontWeight: 600 }}>
+            {NAV_ITEMS.find(n => n.k === screen)?.lb}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, background: agentOn ? `${T.green}12` : `${T.red}12`, border: `1px solid ${agentOn ? T.green : T.red}30`, borderRadius: 20, padding: "3px 10px", fontSize: 10, color: agentOn ? T.green : T.red }}>
+              <div style={{ width: 5, height: 5, borderRadius: "50%", background: agentOn ? T.green : T.red, animation: agentOn ? "pulse 2s infinite" : "none" }} />
+              {agentOn ? "Agent Active" : "Agent Paused"}
+            </div>
+            <button onClick={() => setShowModal(true)} style={{ background: "none", border: "none", cursor: "pointer", color: T.txt2, display: "flex", alignItems: "center" }}>
+              <Bell size={15} />
+            </button>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px" }}>
+          {renderScreen()}
+        </div>
+      </div>
+
+      {drawer && <LeadDrawer lead={drawer} onClose={() => setDrawer(null)} />}
+      {showModal && <ReadinessModal leads={leads} onClose={() => setShowModal(false)} onBook={() => setScreen("pipe")} />}
+    </div>
+  );
+}
